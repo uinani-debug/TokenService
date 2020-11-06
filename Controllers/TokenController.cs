@@ -13,6 +13,8 @@ using System.Linq;
 using TokenLibrary.API.Entities;
 using Token.API.Entities;
 using Token.API.Models;
+using Amazon.Runtime.Internal;
+using System.Security.Claims;
 
 namespace TokenLibrary.API.Controllers
 {
@@ -107,5 +109,45 @@ namespace TokenLibrary.API.Controllers
                 .GetRequiredService<IOptions<ApiBehaviorOptions>>();
             return (ActionResult)options.Value.InvalidModelStateResponseFactory(ControllerContext);
         }
+
+
+
+        [Route("api/v1/ValidateCognitoJwt")]
+        [HttpPost]
+        public ActionResult<CognitoVerifyResponse> Verify([FromBody] CognitoVerifyRequest cognitoVerifyRequest)
+        {
+            try
+            {
+
+                if (cognitoVerifyRequest != null || cognitoVerifyRequest.AccessToken != null)
+
+                {
+                    var tokenClaim = _TokenLibraryRepository.VerifyCognitoJwt(cognitoVerifyRequest.AccessToken);
+
+                    if (tokenClaim == false)
+                    {
+                        var error = new Error() { ErrorMessage = "Token Expired or Invalid Key or Token Verification Failed" };
+                        return Unauthorized(error);
+                    }
+
+                    return Ok();
+                }
+                else
+                    return BadRequest();
+            }
+            catch(Exception ex)
+            {
+                var error = new Error() { ErrorMessage = "Token Expired or Invalid Key or Token Verification Failed" };
+                return Unauthorized(error);
+            }
+        }
+
+        [Route("health")]
+        [HttpGet]
+        public ActionResult health()
+        {
+            return Ok();
+        }
+
     }
 }

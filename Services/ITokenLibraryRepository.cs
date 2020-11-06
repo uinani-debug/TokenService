@@ -10,5 +10,7 @@ namespace TokenLibrary.API.Services
        
         string GenerateTokenRequest(string userid, string scope);
         ValidateTokenResponse ValidateTokenClaim(string jWTToken);
+
+        bool VerifyCognitoJwt(string accessToken);
     }
 }
